@@ -40,6 +40,11 @@ jobs:
           cat ClipMasterAI-Android/app/build.gradle
           echo "===== index.html ====="
           cat ClipMasterAI-Android/app/src/main/assets/index.html
+          
+      - name: Add offline video trimmer
+        run: |
+          mkdir -p ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai
+          cp VideoTrimmer.java ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/VideoTrimmer.java
 
       - name: Build APK
         run: |
