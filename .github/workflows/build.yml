@@ -38,6 +38,8 @@ jobs:
           cat ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java
           echo "===== app/build.gradle ====="
           cat ClipMasterAI-Android/app/build.gradle
+          echo "===== index.html ====="
+          cat ClipMasterAI-Android/app/src/main/assets/index.html
 
       - name: Build APK
         run: |
