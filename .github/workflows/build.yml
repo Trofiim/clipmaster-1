@@ -41,11 +41,10 @@ jobs:
           echo "===== index.html ====="
           cat ClipMasterAI-Android/app/src/main/assets/index.html
           
-      - name: Add offline video trimmer
+      - name: Check offline video trimmer
         run: |
-          mkdir -p ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai
-          cp VideoTrimmer.java ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/VideoTrimmer.java
-
+          test -f ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/VideoTrimmer.java
+          echo "VideoTrimmer.java found"
       - name: Build APK
         run: |
           cd ClipMasterAI-Android
