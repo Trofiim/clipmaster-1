@@ -132,7 +132,16 @@ jobs:
           Выбрать видео
           </button>
 
-          <p>Длительность клипа:</p>
+          <p>Количество клипов:</p>
+          <select id="clipCount">
+            <option value="2">2 клипа</option>
+            <option value="3">3 клипа</option>
+            <option value="5">5 клипов</option>
+            <option value="10">10 клипов</option>
+            <option value="20">20 клипов</option>
+          </select>
+
+          <p>Длительность одного клипа:</p>
           <select id="duration">
             <option value="10">10 секунд</option>
             <option value="15">15 секунд</option>
@@ -140,7 +149,14 @@ jobs:
             <option value="60">60 секунд</option>
           </select>
 
-          <button onclick="cutVideo()">Начать обрезку</button>
+          <p>Соотношение сторон:</p>
+          <select id="ratio">
+            <option value="9:16">9:16 — вертикальное</option>
+            <option value="16:9">16:9 — горизонтальное</option>
+            <option value="1:1">1:1 — квадрат</option>
+          </select>
+
+          <button onclick="cutVideo()">Начать нарезку</button>
 
           <p id="status">Выберите видео для обработки.</p>
 
@@ -153,17 +169,9 @@ jobs:
           };
 
           function cutVideo() {
-            let seconds = parseInt(
-              document.getElementById("duration").value
-            );
-            document.getElementById("status").innerText =
-              "Запущена обработка видео...";
-            AndroidClipper.trimVideo(seconds);
+            document.getElementById('status').innerText =
+              'Настройки выбраны. Подключение обработки следующим шагом.';
           }
-
-          window.onClipResult = function(message) {
-            document.getElementById("status").innerText = message;
-          };
           </script>
           </body>
           </html>
