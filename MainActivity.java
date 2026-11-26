@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.webkit.JavascriptInterface;
 
+import java.util.ArrayList;
+
 public class MainActivity extends Activity {
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
@@ -69,15 +71,23 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            new Thread(() -> {
-                String result = VideoTrimmer.trim(
-                        MainActivity.this,
-                        selectedVideo,
-                        seconds
-                );
+            VideoTrimmer.trim(
+                    MainActivity.this,
+                    selectedVideo,
+                    seconds,
+                    new VideoTrimmer.Callback() {
+                        @Override
+                        public void onCompleted(ArrayList<String> clips) {
+                            sendResult("Готово! Создано клипов: "
+                                    + clips.size());
+                        }
 
-                sendResult(result);
-            }).start();
+                        @Override
+                        public void onError(String error) {
+                            sendResult(error);
+                        }
+                    }
+            );
         }
     }
 
