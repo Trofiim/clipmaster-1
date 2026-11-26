@@ -19,7 +19,7 @@ jobs:
 
       - name: Install updated MainActivity
         run: |
-          cp MainActivity.java ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.javа
+          cp MainActivity.java ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java
           
       - name: Install updated VideoTrimmer
         run: |
