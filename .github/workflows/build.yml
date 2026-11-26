@@ -1,4 +1,3 @@
-
 name: Build ClipMaster AI APK
 
 on:
@@ -10,16 +9,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Extract and inspect project
+
+      - name: Extract project
         run: |
           unzip -o ClipMasterAI-CloudBuild.zip
-          echo "===== PROJECT FILES ====="
-          find . -type f | head -200
+
+      - name: Verify trimmer
+        run: |
+          test -f ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/VideoTrimmer.java
+          echo "Trimmer found"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,20 +32,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-          
-      - name: Show Android source
-        run: |
-          echo "===== MainActivity.java ====="
-          cat ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java
-          echo "===== app/build.gradle ====="
-          cat ClipMasterAI-Android/app/build.gradle
-          echo "===== index.html ====="
-          cat ClipMasterAI-Android/app/src/main/assets/index.html
-          
-      - name: Check offline video trimmer
-        run: |
-          test -f ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/VideoTrimmer.java
-          echo "VideoTrimmer.java found"
+
       - name: Build APK
         run: |
           cd ClipMasterAI-Android
