@@ -17,6 +17,10 @@ jobs:
         run: |
           unzip -o ClipMasterAI-CloudBuild.zip
 
+      - name: Install updated MainActivity
+        run: |
+          cp MainActivity.java ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java
+
       - name: Verify trimmer
         run: |
           test -f ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/VideoTrimmer.java
