@@ -74,8 +74,7 @@ public class VideoTrimmer {
                 muxer.start();
 
                 ByteBuffer buffer = ByteBuffer.allocate(2 * 1024 * 1024);
-                MediaExtractor.SampleInfo info = new MediaExtractor.SampleInfo();
-
+                MediaMuxer.BufferInfo info = new MediaMuxer.BufferInfo();
                 while (true) {
                     int track = extractor.getSampleTrackIndex();
                     if (track < 0) break;
