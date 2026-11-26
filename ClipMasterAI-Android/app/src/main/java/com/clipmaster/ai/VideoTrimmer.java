@@ -1,43 +1,62 @@
 package com.clipmaster.ai;
 
 import android.content.Context;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.net.Uri;
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import android.os.Handler;
+import android.os.Looper;
+
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MediaItem.ClippingConfiguration;
+import androidx.media3.transformer.Transformer;
+import androidx.media3.transformer.EditedMediaItem;
+import androidx.media3.transformer.ExportException;
+import androidx.media3.transformer.ExportResult;
 
 public class VideoTrimmer {
 
-    public static String trim(Context context, Uri source, int seconds) {
-        MediaExtractor extractor = new MediaExtractor();
-        MediaMuxer muxer = null;
+    public interface Callback {
+        void onSuccess(String message);
+        void onError(String message);
+    }
 
-        try {
-            extractor.setDataSource(context, source, null);
+    public static void trim(
+            Context context,
+            Uri uri,
+            int seconds,
+            Callback callback) {
 
-            int videoTrack = -1;
-            int audioTrack = -1;
-            ArrayList<Integer> tracks = new ArrayList<>();
+        MediaItem mediaItem = new MediaItem.Builder()
+                .setUri(uri)
+                .setClippingConfiguration(
+                        new ClippingConfiguration.Builder()
+                                .setStartPositionMs(0)
+                                .setEndPositionMs(seconds * 1000L)
+                                .build())
+                .build();
 
-            for (int i = 0; i < extractor.getTrackCount(); i++) {
-                MediaFormat format = extractor.getTrackFormat(i);
-                String mime = format.getString(MediaFormat.KEY_MIME);
+        EditedMediaItem editedItem =
+                new EditedMediaItem.Builder(mediaItem).build();
 
-                if (mime != null && mime.startsWith("video/")) {
-                    videoTrack = i;
-                } else if (mime != null && mime.startsWith("audio/")) {
-                    audioTrack = i;
-                }
-            }
+        Transformer transformer =
+                new Transformer.Builder(context)
+                        .addListener(new Transformer.Listener() {
+                            @Override
+                            public void onCompleted(
+                                    EditedMediaItem item,
+                                    ExportResult result) {
+                                callback.onSuccess("Видео обработано.");
+                            }
 
-            if (videoTrack < 0) return "В видео не найдена видеодорожка.";
-
-            File folder = new File(context.getExternalFilesDir(null), "Clips");
-            if (!folder.exists()) folder.mkdirs();
-
+                            @Override
+                            public void onError(
+                                    EditedMediaItem item,
+                                    ExportException exception) {
+                                callback.onError(exception.getMessage());
+                            }
+                        })
+                        .build();
+    }
+}
             StringBuilder result = new StringBuilder();
             int durationUs = seconds * 1000000;
 
