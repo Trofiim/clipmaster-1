@@ -14,11 +14,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Extract project
+        
+      - name: Extract and inspect project
         run: |
           unzip -o ClipMasterAI-CloudBuild.zip
-          find . -name build.gradle -type f
+          echo "===== PROJECT FILES ====="
+          find . -type f | head -200
 
       - name: Setup Java
         uses: actions/setup-java@v4
