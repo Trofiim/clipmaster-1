@@ -87,6 +87,82 @@ jobs:
           }
           EOF
 
+      - name: Install working video screen
+        run: |
+          cat > ClipMasterAI-Android/app/src/main/assets/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="ru">
+          <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>ClipMaster AI</title>
+          <style>
+          body {
+            background:#101114;
+            color:white;
+            font-family:Arial,sans-serif;
+            padding:24px;
+            text-align:center;
+          }
+          button,select {
+            width:100%;
+            padding:16px;
+            margin:12px 0;
+            border-radius:12px;
+            font-size:18px;
+          }
+          button {
+            background:#5b68ff;
+            color:white;
+            border:0;
+          }
+          select {
+            background:#24252b;
+            color:white;
+          }
+          </style>
+          </head>
+          <body>
+          <h1>ClipMaster AI</h1>
+          <p>Нарезка видео на телефоне</p>
+
+          <button onclick="chooseVideo()">Выбрать видео</button>
+
+          <p>Длительность клипа:</p>
+          <select id="duration">
+            <option value="10">10 секунд</option>
+            <option value="15">15 секунд</option>
+            <option value="30">30 секунд</option>
+            <option value="60">60 секунд</option>
+          </select>
+
+          <button onclick="cutVideo()">Начать обрезку</button>
+
+          <p id="status">Выберите видео для обработки.</p>
+
+          <script>
+          function chooseVideo() {
+            document.getElementById("status").innerText =
+              "Выберите видео в открывшемся окне.";
+            AndroidClipper.pickVideo();
+          }
+
+          function cutVideo() {
+            let seconds = parseInt(
+              document.getElementById("duration").value
+            );
+            document.getElementById("status").innerText =
+              "Запущена обработка видео...";
+            AndroidClipper.trimVideo(seconds);
+          }
+
+          window.onClipResult = function(message) {
+            document.getElementById("status").innerText = message;
+          };
+          </script>
+          </body>
+          </html>
+          EOF
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
