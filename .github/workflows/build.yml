@@ -15,6 +15,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Find and extract project archive
+        run: |
+          mkdir source
+          unzip -q ClipMasterAI-CloudBuild.zip -d source
+          find source -name settings.gradle -exec dirname {} \;
+
+      - name: Locate Android project
+        run: |
+          cd source/ClipMasterAI-Android
+          echo "PROJECT_DIR=$PWD" >> $GITHUB_ENV
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -24,13 +35,19 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Gradle
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.9-bin.zip
+          unzip -q gradle-8.9-bin.zip
+          echo "$PWD/gradle-8.9/bin" >> $GITHUB_PATH
+
       - name: Build APK
         run: |
-          chmod +x gradlew || true
+          cd "$PROJECT_DIR"
           gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ClipMasterAI-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: source/ClipMasterAI-Android/app/build/outputs/apk/debug/*.apk
