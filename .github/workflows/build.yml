@@ -34,16 +34,20 @@ jobs:
           import androidx.media3.transformer.EditedMediaItem;
           import androidx.media3.transformer.ExportException;
           import androidx.media3.transformer.ExportResult;
+          import androidx.media3.transformer.Composition;
           import java.io.File;
 
           public class VideoTrimmer {
+
               public interface Callback {
                   void onSuccess(String message);
                   void onError(String message);
               }
 
               public static void trim(Context context, Uri uri, int seconds, Callback callback) {
+
                   File folder = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+
                   if (folder == null) {
                       callback.onError("Не удалось создать папку видео.");
                       return;
@@ -60,17 +64,19 @@ jobs:
                                           .build())
                           .build();
 
-                  EditedMediaItem editedItem = new EditedMediaItem.Builder(mediaItem).build();
+                  EditedMediaItem editedItem =
+                          new EditedMediaItem.Builder(mediaItem).build();
 
                   Transformer transformer = new Transformer.Builder(context)
                           .addListener(new Transformer.Listener() {
+
                               @Override
-                              public void onCompleted(EditedMediaItem item, ExportResult result) {
+                              public void onCompleted(Composition composition, ExportResult result) {
                                   callback.onSuccess("Клип сохранён: " + output.getAbsolutePath());
                               }
 
                               @Override
-                              public void onError(EditedMediaItem item, ExportException exception) {
+                              public void onError(Composition composition, ExportResult result, ExportException exception) {
                                   callback.onError(exception.getMessage());
                               }
                           })
