@@ -19,9 +19,10 @@ public class MainActivity extends Activity {
     private Uri selectedVideo;
     private static final int PICK_VIDEO = 1001;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    @Override 
+    public void onSuccess(String message) {
+    sendResult(message);
+    }
 
         web = new WebView(this);
         setContentView(web);
