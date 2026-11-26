@@ -91,9 +91,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Enable AndroidX
+      - name: Enable AndroidX and SDK 36
         run: |
           echo "android.useAndroidX=true" > ClipMasterAI-Android/gradle.properties
+          sed -i 's/compileSdk 35/compileSdk 36/g' ClipMasterAI-Android/app/build.gradle
+          sed -i 's/compileSdkVersion 35/compileSdkVersion 36/g' ClipMasterAI-Android/app/build.gradle
 
       - name: Add Media3 dependencies
       
