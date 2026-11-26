@@ -95,12 +95,14 @@ jobs:
       - name: Add Media3 dependencies
         run: |
           FILE="ClipMasterAI-Android/app/build.gradle"
-          echo "===== BEFORE ====="
-          cat "$FILE"
-          sed -i '/dependencies {/a\    implementation "androidx.media3:media3-transformer:1.11.1"' "$FILE"
-          sed -i '/dependencies {/a\    implementation "androidx.media3:media3-effect:1.11.1"' "$FILE"
-          sed -i '/dependencies {/a\    implementation "androidx.media3:media3-common:1.11.1"' "$FILE"
-          echo "===== AFTER ====="
+          cat >> "$FILE" <<'EOF'
+
+          dependencies {
+              implementation "androidx.media3:media3-transformer:1.11.1"
+              implementation "androidx.media3:media3-effect:1.11.1"
+              implementation "androidx.media3:media3-common:1.11.1"
+          }
+          EOF
           cat "$FILE"
       - name: Build APK
         run: |
