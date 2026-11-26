@@ -31,6 +31,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+          
+      - name: Show Android source
+        run: |
+          echo "===== MainActivity.java ====="
+          cat ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java
+          echo "===== app/build.gradle ====="
+          cat ClipMasterAI-Android/app/build.gradle
 
       - name: Build APK
         run: |
