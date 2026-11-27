@@ -210,44 +210,7 @@ public class VideoTrimmer {
                           result = data.getData();
                       }
 
-                      selectedVideo = result;
 
-                      if (fileCallback != null) {
-                          fileCallback.onReceiveValue(
-                              result == null ? null : new Uri[]{result}
-                          );
-                          fileCallback = null;
-                      }
-
-                      if (selectedVideo != null) {
-                          sendResult("Видео выбрано.");
-                      }
-                  }
-              }
-
-              private void sendResult(String message) {
-                  String safe = message.replace("\\\\", "\\\\\\\\")
-                      .replace("'", "\\\\'")
-                      .replace("\\n", " ");
-
-                  web.post(() -> web.evaluateJavascript(
-                      "window.onClipResult && window.onClipResult('" + safe + "')",
-                      null
-                  ));
-              }
-
-              public class VideoBridge {
-                  @JavascriptInterface
-                  public void trimVideo(int seconds, int clipCount) {
-                      if (selectedVideo == null) {
-                          sendResult("Сначала выберите видео.");
-                          return;
-                      }
-
-                      sendResult("Обработка запущена...");
-
-      - name: Install updated MainActivity
-        run: |
           cat > ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java <<'EOF'
           package com.clipmaster.ai;
 
