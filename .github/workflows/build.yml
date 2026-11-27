@@ -29,6 +29,7 @@ jobs:
           import android.content.Context;
           import android.net.Uri;
           import android.os.Environment;
+          import android.media.MediaMetadataRetriever;
           import androidx.media3.common.MediaItem;
           import androidx.media3.transformer.Transformer;
           import androidx.media3.transformer.EditedMediaItem;
@@ -45,42 +46,99 @@ jobs:
               }
 
               public static void trim(Context context, Uri uri, int seconds, Callback callback) {
+                  try {
+                      MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                      retriever.setDataSource(context, uri);
 
-                  File folder = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+                      String durationText = retriever.extractMetadata(
+                          MediaMetadataRetriever.METADATA_KEY_DURATION
+                      );
 
-                  if (folder == null) {
-                      callback.onError("Не удалось создать папку видео.");
+                      retriever.release();
+
+                      if (durationText == null) {
+                          callback.onError("Не удалось определить длительность видео.");
+                          return;
+                      }
+
+                      long durationMs = Long.parseLong(durationText);
+                      long clipMs = seconds * 1000L;
+
+                      File folder = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+
+                      if (folder == null) {
+                          callback.onError("Не удалось создать папку видео.");
+                          return;
+                      }
+
+                      folder.mkdirs();
+
+                      int total = (int) Math.min(20, (durationMs + clipMs - 1) / clipMs);
+
+                      exportClip(context, uri, folder, clipMs, durationMs, 0, total, callback);
+
+                  } catch (Exception e) {
+                      callback.onError("Ошибка: " + e.getMessage());
+                  }
+              }
+
+              private static void exportClip(
+                  Context context,
+                  Uri uri,
+                  File folder,
+                  long clipMs,
+                  long durationMs,
+                  int index,
+                  int total,
+                  Callback callback
+              ) {
+                  if (index >= total) {
+                      callback.onSuccess("Готово! Создано клипов: " + total
+                          + ". Папка: " + folder.getAbsolutePath());
                       return;
                   }
 
-                  File output = new File(folder, "clip_" + System.currentTimeMillis() + ".mp4");
+                  long startMs = index * clipMs;
+                  long endMs = Math.min(startMs + clipMs, durationMs);
+
+                  File output = new File(folder, "clip_" + (index + 1) + ".mp4");
 
                   MediaItem mediaItem = new MediaItem.Builder()
-                          .setUri(uri)
-                          .setClippingConfiguration(
-                                  new MediaItem.ClippingConfiguration.Builder()
-                                          .setStartPositionMs(0)
-                                          .setEndPositionMs(seconds * 1000L)
-                                          .build())
-                          .build();
+                      .setUri(uri)
+                      .setClippingConfiguration(
+                          new MediaItem.ClippingConfiguration.Builder()
+                              .setStartPositionMs(startMs)
+                              .setEndPositionMs(endMs)
+                              .build()
+                      )
+                      .build();
 
                   EditedMediaItem editedItem =
-                          new EditedMediaItem.Builder(mediaItem).build();
+                      new EditedMediaItem.Builder(mediaItem).build();
 
                   Transformer transformer = new Transformer.Builder(context)
-                          .addListener(new Transformer.Listener() {
+                      .addListener(new Transformer.Listener() {
 
-                              @Override
-                              public void onCompleted(Composition composition, ExportResult result) {
-                                  callback.onSuccess("Клип сохранён: " + output.getAbsolutePath());
-                              }
+                          @Override
+                          public void onCompleted(
+                              Composition composition,
+                              ExportResult result
+                          ) {
+                              exportClip(context, uri, folder, clipMs,
+                                  durationMs, index + 1, total, callback);
+                          }
 
-                              @Override
-                              public void onError(Composition composition, ExportResult result, ExportException exception) {
-                                  callback.onError(exception.getMessage());
-                              }
-                          })
-                          .build();
+                          @Override
+                          public void onError(
+                              Composition composition,
+                              ExportResult result,
+                              ExportException exception
+                          ) {
+                              callback.onError("Ошибка клипа "
+                                  + (index + 1) + ": " + exception.getMessage());
+                          }
+                      })
+                      .build();
 
                   transformer.start(editedItem, output.getAbsolutePath());
               }
