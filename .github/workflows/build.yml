@@ -22,198 +22,6 @@ jobs:
           cat > ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java <<'EOF'
           package com.clipmaster.ai;
 
-          package com.clipmaster.ai;
-
-          import android.content.Context;
-          import android.net.Uri;
-          import android.os.Environment;
-          import android.media.MediaMetadataRetriever;
-          import androidx.media3.common.MediaItem;
-          import androidx.media3.transformer.Transformer;
-import androidx.media3.transformer.EditedMediaItem;
-import androidx.media3.transformer.ExportException;
-import androidx.media3.transformer.ExportResult;
-import androidx.media3.transformer.Composition;
-import java.io.File;
-
-public class VideoTrimmer {
-
-    public interface Callback {
-        void onSuccess(String message);
-        void onError(String message);
-    }
-
-    public static void trim(
-        Context context,
-        Uri uri,
-        int seconds,
-        int clipCount,
-        Callback callback
-    ) {
-        try {
-            MediaMetadataRetriever retriever =
-                new MediaMetadataRetriever();
-
-            retriever.setDataSource(context, uri);
-
-            String durationText = retriever.extractMetadata(
-                MediaMetadataRetriever.METADATA_KEY_DURATION
-            );
-
-            retriever.release();
-
-            if (durationText == null) {
-                callback.onError("Не удалось определить длительность видео.");
-                return;
-            }
-
-            long durationMs = Long.parseLong(durationText);
-            long clipMs = seconds * 1000L;
-
-            File folder = context.getExternalFilesDir(
-                Environment.DIRECTORY_MOVIES
-            );
-
-            if (folder == null) {
-                callback.onError("Не удалось создать папку видео.");
-                return;
-            }
-
-            folder.mkdirs();
-
-            int total = Math.max(1, Math.min(20, clipCount));
-
-            long actualClipMs = Math.min(
-                clipMs,
-                durationMs / total
-            );
-
-            if (actualClipMs <= 0) {
-                callback.onError("Видео слишком короткое.");
-                return;
-            }
-
-            exportClip(
-                context,
-                uri,
-                folder,
-                actualClipMs,
-                durationMs,
-                0,
-                total,
-                callback
-            );
-
-        } catch (Exception e) {
-            callback.onError("Ошибка: " + e.getMessage());
-        }
-    }
-
-    private static void exportClip(
-        Context context,
-        Uri uri,
-        File folder,
-        long clipMs,
-        long durationMs,
-        int index,
-        int total,
-        Callback callback
-    ) {
-        if (index >= total) {
-            callback.onSuccess(
-                "Готово! Создано клипов: " + total
-                + ". Папка: " + folder.getAbsolutePath()
-            );
-            return;
-        }
-
-        long maxStart = Math.max(0, durationMs - clipMs);
-
-        long startMs = total == 1
-            ? 0
-            : (maxStart * index) / (total - 1);
-
-        long endMs = Math.min(startMs + clipMs, durationMs);
-
-        File output = new File(
-            folder,
-            "clip_" + System.currentTimeMillis()
-            + "_" + (index + 1) + ".mp4"
-        );
-
-        MediaItem mediaItem = new MediaItem.Builder()
-            .setUri(uri)
-            .setClippingConfiguration(
-                new MediaItem.ClippingConfiguration.Builder()
-                    .setStartPositionMs(startMs)
-                    .setEndPositionMs(endMs)
-                    .build()
-            )
-            .build();
-
-        EditedMediaItem editedItem =
-            new EditedMediaItem.Builder(mediaItem).build();
-
-        Transformer transformer = new Transformer.Builder(context)
-            .addListener(new Transformer.Listener() {
-
-                @Override
-                public void onCompleted(
-                    Composition composition,
-                    ExportResult result
-                ) {
-                    exportClip(
-                        context,
-                        uri,
-                        folder,
-                        clipMs,
-                        durationMs,
-                        index + 1,
-                        total,
-                        callback
-                    );
-                }
-
-                @Override
-                public void onError(
-                    Composition composition,
-                    ExportResult result,
-                    ExportException exception
-                ) {
-                    callback.onError(
-                        "Ошибка клипа " + (index + 1)
-                        + ": " + exception.getMessage()
-                    );
-                }
-            })
-            .build();
-
-        transformer.start(
-            editedItem,
-            output.getAbsolutePath()
-        );
-    }
-}
-
-              @Override
-              protected void onActivityResult(
-                  int requestCode,
-                  int resultCode,
-                  Intent data
-              ) {
-                  super.onActivityResult(requestCode, resultCode, data);
-
-                  if (requestCode == PICK_VIDEO) {
-                      Uri result = null;
-
-                      if (resultCode == RESULT_OK && data != null) {
-                          result = data.getData();
-                      }
-
-
-          cat > ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java <<'EOF'
-          package com.clipmaster.ai;
-
           import android.app.Activity;
           import android.os.Bundle;
           import android.webkit.WebView;
@@ -243,7 +51,9 @@ public class VideoTrimmer {
                   settings.setDomStorageEnabled(true);
 
                   web.setWebViewClient(new WebViewClient());
-                  web.addJavascriptInterface(new VideoBridge(), "AndroidClipper");
+                  web.addJavascriptInterface(
+                      new VideoBridge(), "AndroidClipper"
+                  );
 
                   web.setWebChromeClient(new WebChromeClient() {
                       @Override
@@ -254,16 +64,24 @@ public class VideoTrimmer {
                       ) {
                           fileCallback = callback;
 
-                          Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                          Intent intent = new Intent(
+                              Intent.ACTION_GET_CONTENT
+                          );
                           intent.setType("video/*");
-                          intent.addCategory(Intent.CATEGORY_OPENABLE);
+                          intent.addCategory(
+                              Intent.CATEGORY_OPENABLE
+                          );
 
-                          startActivityForResult(intent, PICK_VIDEO);
+                          startActivityForResult(
+                              intent, PICK_VIDEO
+                          );
                           return true;
                       }
                   });
 
-                  web.loadUrl("file:///android_asset/index.html");
+                  web.loadUrl(
+                      "file:///android_asset/index.html"
+                  );
               }
 
               @Override
@@ -272,12 +90,15 @@ public class VideoTrimmer {
                   int resultCode,
                   Intent data
               ) {
-                  super.onActivityResult(requestCode, resultCode, data);
+                  super.onActivityResult(
+                      requestCode, resultCode, data
+                  );
 
                   if (requestCode == PICK_VIDEO) {
                       Uri result = null;
 
-                      if (resultCode == RESULT_OK && data != null) {
+                      if (resultCode == RESULT_OK
+                          && data != null) {
                           result = data.getData();
                       }
 
@@ -285,7 +106,9 @@ public class VideoTrimmer {
 
                       if (fileCallback != null) {
                           fileCallback.onReceiveValue(
-                              result == null ? null : new Uri[]{result}
+                              result == null
+                                  ? null
+                                  : new Uri[]{result}
                           );
                           fileCallback = null;
                       }
@@ -297,25 +120,33 @@ public class VideoTrimmer {
               }
 
               private void sendResult(String message) {
-                  String safe = message.replace("\\\\", "\\\\\\\\")
-                      .replace("'", "\\\\'")
-                      .replace("\\n", " ");
+                  String safe = message
+                      .replace("\\", "\\\\")
+                      .replace("'", "\\'")
+                      .replace("\n", " ");
 
                   web.post(() -> web.evaluateJavascript(
-                      "window.onClipResult && window.onClipResult('" + safe + "')",
+                      "window.onClipResult && window.onClipResult('"
+                      + safe + "')",
                       null
                   ));
               }
 
               public class VideoBridge {
                   @JavascriptInterface
-                  public void trimVideo(int seconds, int clipCount) {
+                  public void trimVideo(
+                      int seconds, int clipCount
+                  ) {
                       if (selectedVideo == null) {
-                          sendResult("Сначала выберите видео.");
+                          sendResult(
+                              "Сначала выберите видео."
+                          );
                           return;
                       }
 
-                      sendResult("Обработка запущена...");
+                      sendResult(
+                          "Обработка запущена..."
+                      );
 
                       VideoTrimmer.trim(
                           MainActivity.this,
@@ -324,13 +155,19 @@ public class VideoTrimmer {
                           clipCount,
                           new VideoTrimmer.Callback() {
                               @Override
-                              public void onSuccess(String message) {
+                              public void onSuccess(
+                                  String message
+                              ) {
                                   sendResult(message);
                               }
 
                               @Override
-                              public void onError(String message) {
-                                  sendResult("Ошибка: " + message);
+                              public void onError(
+                                  String message
+                              ) {
+                                  sendResult(
+                                      "Ошибка: " + message
+                                  );
                               }
                           }
                       );
@@ -338,8 +175,6 @@ public class VideoTrimmer {
               }
           }
           EOF
-          
-      
       - name: Install updated VideoTrimmer
         run: |
           mkdir -p ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai
