@@ -3,12 +3,14 @@ package com.clipmaster.ai;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.media.MediaMetadataRetriever;
 
 import androidx.media3.common.MediaItem;
 import androidx.media3.transformer.Transformer;
 import androidx.media3.transformer.EditedMediaItem;
 import androidx.media3.transformer.ExportException;
 import androidx.media3.transformer.ExportResult;
+import androidx.media3.transformer.Composition;
 
 import java.io.File;
 
@@ -20,53 +22,165 @@ public class VideoTrimmer {
     }
 
     public static void trim(
-            Context context,
-            Uri uri,
-            int seconds,
-            Callback callback) {
+        Context context,
+        Uri uri,
+        int seconds,
+        int clipCount,
+        Callback callback
+    ) {
+        try {
+            MediaMetadataRetriever retriever =
+                new MediaMetadataRetriever();
 
-        File folder = context.getExternalFilesDir(
-                Environment.DIRECTORY_MOVIES);
+            retriever.setDataSource(context, uri);
 
-        if (folder == null) {
-            callback.onError("Не удалось создать папку видео.");
+            String durationText = retriever.extractMetadata(
+                MediaMetadataRetriever.METADATA_KEY_DURATION
+            );
+
+            retriever.release();
+
+            if (durationText == null) {
+                callback.onError(
+                    "Не удалось определить длительность видео."
+                );
+                return;
+            }
+
+            long durationMs = Long.parseLong(durationText);
+            long clipMs = seconds * 1000L;
+
+            File folder = context.getExternalFilesDir(
+                Environment.DIRECTORY_MOVIES
+            );
+
+            if (folder == null) {
+                callback.onError(
+                    "Не удалось создать папку видео."
+                );
+                return;
+            }
+
+            folder.mkdirs();
+
+            int total = Math.max(1, Math.min(20, clipCount));
+
+            long actualClipMs = Math.min(
+                clipMs,
+                durationMs / total
+            );
+
+            if (actualClipMs <= 0) {
+                callback.onError("Видео слишком короткое.");
+                return;
+            }
+
+            exportClip(
+                context,
+                uri,
+                folder,
+                actualClipMs,
+                durationMs,
+                0,
+                total,
+                callback
+            );
+
+        } catch (Exception e) {
+            callback.onError(
+                "Ошибка: " + e.getMessage()
+            );
+        }
+    }
+
+    private static void exportClip(
+        Context context,
+        Uri uri,
+        File folder,
+        long clipMs,
+        long durationMs,
+        int index,
+        int total,
+        Callback callback
+    ) {
+        if (index >= total) {
+            callback.onSuccess(
+                "Готово! Создано клипов: " + total
+                + ". Папка: " + folder.getAbsolutePath()
+            );
             return;
         }
 
-        File output = new File(folder, "clip_" + System.currentTimeMillis() + ".mp4");
+        long maxStart = Math.max(
+            0,
+            durationMs - clipMs
+        );
+
+        long startMs = total == 1
+            ? 0
+            : (maxStart * index) / (total - 1);
+
+        long endMs = Math.min(
+            startMs + clipMs,
+            durationMs
+        );
+
+        File output = new File(
+            folder,
+            "clip_" + System.currentTimeMillis()
+            + "_" + (index + 1) + ".mp4"
+        );
 
         MediaItem mediaItem = new MediaItem.Builder()
-                .setUri(uri)
-                .setClippingConfiguration(
-                        new MediaItem.ClippingConfiguration.Builder()
-                                .setStartPositionMs(0)
-                                .setEndPositionMs(seconds * 1000L)
-                                .build())
-                .build();
+            .setUri(uri)
+            .setClippingConfiguration(
+                new MediaItem.ClippingConfiguration.Builder()
+                    .setStartPositionMs(startMs)
+                    .setEndPositionMs(endMs)
+                    .build()
+            )
+            .build();
 
         EditedMediaItem editedItem =
-                new EditedMediaItem.Builder(mediaItem).build();
+            new EditedMediaItem.Builder(mediaItem).build();
 
-        Transformer transformer =
-                new Transformer.Builder(context)
-                        .addListener(new Transformer.Listener() {
-                            @Override
-                            public void onCompleted(
-                                    EditedMediaItem item,
-                                    ExportResult result) {
-                                callback.onSuccess(
-                                        "Клип сохранён: " + output.getAbsolutePath());
-                            }
+        Transformer transformer = new Transformer.Builder(context)
+            .addListener(new Transformer.Listener() {
 
-                            @Override
-                            public void onError(
-                                    EditedMediaItem item,
-                                    ExportException exception) {
-                                callback.onError(exception.getMessage());
-                            }
-                        })
-                        .build();
+                @Override
+                public void onCompleted(
+                    Composition composition,
+                    ExportResult result
+                ) {
+                    exportClip(
+                        context,
+                        uri,
+                        folder,
+                        clipMs,
+                        durationMs,
+                        index + 1,
+                        total,
+                        callback
+                    );
+                }
 
-        transformer.start(editedItem, output.getAbsolutePath());
+                @Override
+                public void onError(
+                    Composition composition,
+                    ExportResult result,
+                    ExportException exception
+                ) {
+                    callback.onError(
+                        "Ошибка клипа " + (index + 1)
+                        + ": " + exception.getMessage()
+                    );
+                }
+            })
+            .build();
+
+        transformer.start(
+            editedItem,
+            output.getAbsolutePath()
+        );
     }
 }
