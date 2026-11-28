@@ -554,7 +554,7 @@ jobs:
               }
           }
           EOF               
-      
+
       
       - name: Install working video screen
         run: |
@@ -563,231 +563,138 @@ jobs:
           <html lang="ru">
           <head>
           <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>ClipMaster AI</title>
           <style>
-          * {
-            box-sizing:border-box;
-          }
-
+          * { box-sizing: border-box; }
           body {
-            background:#101114;
-            color:#ffffff;
-            font-family:Arial,sans-serif;
-            padding:20px;
-            margin:0;
+            margin: 0;
+            padding: 20px;
+            background: #101114;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
           }
-
-          .container {
-            max-width:500px;
-            margin:auto;
+          .card {
+            max-width: 500px;
+            margin: auto;
+            padding: 22px;
+            background: #1c1d22;
+            border-radius: 22px;
           }
-
-          h1 {
-            font-size:30px;
-            margin:10px 0;
-          }
-
-          .subtitle {
-            color:#aeb0bd;
-            margin-bottom:25px;
-          }
-
-          .section {
-            background:#1b1c22;
-            border:1px solid #2c2d35;
-            border-radius:16px;
-            padding:16px;
-            margin:16px 0;
-            text-align:left;
-          }
-
+          h1 { text-align: center; }
+          p { color: #b7b7c1; }
           label {
-            display:block;
-            font-weight:bold;
-            margin-bottom:10px;
+            display: block;
+            margin-top: 18px;
+            margin-bottom: 8px;
           }
-
-          select {
-            width:100%;
-            padding:14px;
-            border-radius:12px;
-            background:#272830;
-            color:white;
-            border:1px solid #41424b;
-            font-size:16px;
+          select, input, button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #44454d;
+            background: #292a31;
+            color: white;
+            font-size: 16px;
           }
-
           button {
-            width:100%;
-            padding:16px;
-            margin:10px 0;
-            border-radius:14px;
-            font-size:17px;
-            font-weight:bold;
-            border:0;
-            background:#626cff;
-            color:white;
+            margin-top: 22px;
+            background: #6955e8;
+            border: none;
+            font-weight: bold;
           }
-
-          button:active {
-            opacity:0.8;
-          }
-
-          .secondary {
-            background:#292b35;
-            border:1px solid #41434e;
-          }
-
-          .hint {
-            color:#aeb0bd;
-            font-size:13px;
-            line-height:1.5;
-            margin-top:10px;
-          }
-
+          button:active { opacity: 0.7; }
           #status {
-            background:#1b1c22;
-            border:1px solid #34353d;
-            border-radius:14px;
-            padding:16px;
-            line-height:1.5;
-            margin-top:18px;
-            overflow-wrap:anywhere;
-          }
-
-          .brand {
-            color:#8790ff;
+            margin-top: 18px;
+            text-align: center;
+            color: #b9aaff;
+            overflow-wrap: anywhere;
           }
           </style>
           </head>
-
           <body>
-          <div class="container">
+          <div class="card">
+          <h1>ClipMaster AI</h1>
+          <p>Создание коротких видеоклипов на телефоне</p>
 
-          <h1><span class="brand">ClipMaster</span> AI</h1>
-          <p class="subtitle">Создание видеоклипов на телефоне</p>
+          <label>Исходное видео</label>
+          <input type="file" id="video" accept="video/*">
 
-          <input
-            id="video"
-            type="file"
-            accept="video/*"
-            style="display:none"
-          >
+          <label>Количество клипов</label>
+          <select id="count">
+            <option value="1">1 клип</option>
+            <option value="2">2 клипа</option>
+            <option value="3">3 клипа</option>
+            <option value="5" selected>5 клипов</option>
+            <option value="8">8 клипов</option>
+            <option value="10">10 клипов</option>
+            <option value="15">15 клипов</option>
+            <option value="20">20 клипов</option>
+          </select>
 
-          <button
-            class="secondary"
-            onclick="document.getElementById('video').click()"
-          >
-            Выбрать исходное видео
-          </button>
+          <label>Длительность клипа</label>
+          <select id="seconds">
+            <option value="5">5 секунд</option>
+            <option value="10">10 секунд</option>
+            <option value="15" selected>15 секунд</option>
+            <option value="20">20 секунд</option>
+            <option value="30">30 секунд</option>
+            <option value="45">45 секунд</option>
+            <option value="60">60 секунд</option>
+          </select>
 
-          <div class="section">
-            <label for="clipCount">Количество клипов</label>
-            <select id="clipCount">
-              <option value="1">1 клип</option>
-              <option value="2">2 клипа</option>
-              <option value="3">3 клипа</option>
-              <option value="5" selected>5 клипов</option>
-              <option value="8">8 клипов</option>
-              <option value="10">10 клипов</option>
-              <option value="15">15 клипов</option>
-              <option value="20">20 клипов</option>
-            </select>
-            <p class="hint">
-              Выбери, сколько отдельных видеороликов создать.
-            </p>
+          <label>Формат кадра</label>
+          <select id="ratio">
+            <option value="9:16">9:16 — вертикальный</option>
+            <option value="16:9">16:9 — горизонтальный</option>
+            <option value="1:1">1:1 — квадрат</option>
+          </select>
+
+          <button onclick="startCutting()">Начать нарезку</button>
+
+          <div id="status">Выберите видео для начала.</div>
           </div>
-
-          <div class="section">
-            <label for="duration">Ориентировочная длительность клипа</label>
-            <select id="duration">
-              <option value="5">5 секунд</option>
-              <option value="10">10 секунд</option>
-              <option value="15" selected>15 секунд</option>
-              <option value="20">20 секунд</option>
-              <option value="30">30 секунд</option>
-              <option value="45">45 секунд</option>
-              <option value="60">60 секунд</option>
-            </select>
-            <p class="hint">
-              Фактическая длительность может немного отличаться
-              из-за алгоритма разнообразия.
-            </p>
-          </div>
-
-          <div class="section">
-            <label for="ratio">Формат кадра</label>
-            <select id="ratio">
-              <option value="9:16">9:16 — вертикальный</option>
-              <option value="16:9">16:9 — горизонтальный</option>
-              <option value="1:1">1:1 — квадратный</option>
-            </select>
-            <p class="hint">
-              Выбор формата пока сохраняется в интерфейсе.
-              Реальное преобразование кадра подключим отдельно.
-            </p>
-          </div>
-
-          <button onclick="cutVideo()">
-            Начать нарезку
-          </button>
-
-          <p id="status">
-            Выбери видео, количество клипов и длительность.
-          </p>
 
           <script>
           let videoSelected = false;
 
-          document.getElementById('video').onchange = function() {
-            if (this.files && this.files.length > 0) {
-              videoSelected = true;
-
-              document.getElementById('status').innerText =
-                'Видео выбрано. Настрой параметры и нажми Начать нарезку.';
-            }
+          document.getElementById("video").onchange = function() {
+            videoSelected = this.files.length > 0;
+            document.getElementById("status").innerText =
+              videoSelected ? "Видео выбрано." : "Выберите видео.";
           };
 
-          function cutVideo() {
+          window.onClipResult = function(message) {
+            document.getElementById("status").innerText = message;
+          };
 
-            let seconds = parseInt(
-              document.getElementById('duration').value
-            );
-
-            let count = parseInt(
-              document.getElementById('clipCount').value
-            );
-
-            let ratio = document.getElementById('ratio').value;
-
+          function startCutting() {
             if (!videoSelected) {
-              document.getElementById('status').innerText =
-                'Сначала выбери исходное видео.';
+              document.getElementById("status").innerText =
+                "Сначала выберите видео.";
               return;
             }
 
-            document.getElementById('status').innerText =
-              'Запущена обработка. Создаётся ' +
-              count + ' клипов...';
+            let seconds = parseInt(
+              document.getElementById("seconds").value
+            );
 
-            try {
-              AndroidClipper.trimVideo(seconds, count);
-            } catch (e) {
-              document.getElementById('status').innerText =
-                'Не удалось запустить обработку: ' + e.message;
-            }
+            let count = parseInt(
+              document.getElementById("count").value
+            );
+
+            let ratio = document.getElementById("ratio").value;
+
+            document.getElementById("status").innerText =
+              "Запуск обработки...";
+
+            AndroidClipper.trimVideo(seconds, count, ratio);
           }
-
-          window.onClipResult = function(message) {
-            document.getElementById('status').innerText = message;
-          };
           </script>
-
-          </div>
           </body>
           </html>
           EOF
+
 
       - name: Setup Java
         uses: actions/setup-java@v4
