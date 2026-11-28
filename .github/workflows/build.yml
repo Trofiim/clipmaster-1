@@ -636,6 +636,7 @@ jobs:
 
 
 
+      
       - name: Install working video screen
         run: |
           cat > ClipMasterAI-Android/app/src/main/assets/index.html <<'EOF'
@@ -646,94 +647,229 @@ jobs:
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <title>ClipMaster AI</title>
           <style>
+          * {
+            box-sizing:border-box;
+          }
+
           body {
             background:#101114;
-            color:white;
+            color:#ffffff;
             font-family:Arial,sans-serif;
-            padding:24px;
-            text-align:center;
+            padding:20px;
+            margin:0;
           }
-          button,select {
+
+          .container {
+            max-width:500px;
+            margin:auto;
+          }
+
+          h1 {
+            font-size:30px;
+            margin:10px 0;
+          }
+
+          .subtitle {
+            color:#aeb0bd;
+            margin-bottom:25px;
+          }
+
+          .section {
+            background:#1b1c22;
+            border:1px solid #2c2d35;
+            border-radius:16px;
+            padding:16px;
+            margin:16px 0;
+            text-align:left;
+          }
+
+          label {
+            display:block;
+            font-weight:bold;
+            margin-bottom:10px;
+          }
+
+          select {
+            width:100%;
+            padding:14px;
+            border-radius:12px;
+            background:#272830;
+            color:white;
+            border:1px solid #41424b;
+            font-size:16px;
+          }
+
+          button {
             width:100%;
             padding:16px;
-            margin:12px 0;
-            border-radius:12px;
-            font-size:18px;
-          }
-          button {
-            background:#5b68ff;
-            color:white;
+            margin:10px 0;
+            border-radius:14px;
+            font-size:17px;
+            font-weight:bold;
             border:0;
-          }
-          select {
-            background:#24252b;
+            background:#626cff;
             color:white;
+          }
+
+          button:active {
+            opacity:0.8;
+          }
+
+          .secondary {
+            background:#292b35;
+            border:1px solid #41434e;
+          }
+
+          .hint {
+            color:#aeb0bd;
+            font-size:13px;
+            line-height:1.5;
+            margin-top:10px;
+          }
+
+          #status {
+            background:#1b1c22;
+            border:1px solid #34353d;
+            border-radius:14px;
+            padding:16px;
+            line-height:1.5;
+            margin-top:18px;
+            overflow-wrap:anywhere;
+          }
+
+          .brand {
+            color:#8790ff;
           }
           </style>
           </head>
+
           <body>
-          <h1>ClipMaster AI</h1>
-          <p>Нарезка видео на телефоне</p>
+          <div class="container">
 
-          <input id="video" type="file" accept="video/*" style="display:none">
+          <h1><span class="brand">ClipMaster</span> AI</h1>
+          <p class="subtitle">Создание видеоклипов на телефоне</p>
 
-          <button onclick="document.getElementById('video').click()">
-          Выбрать видео
+          <input
+            id="video"
+            type="file"
+            accept="video/*"
+            style="display:none"
+          >
+
+          <button
+            class="secondary"
+            onclick="document.getElementById('video').click()"
+          >
+            Выбрать исходное видео
           </button>
 
-          <p>Количество клипов:</p>
-          <select id="clipCount">
-            <option value="2">2 клипа</option>
-            <option value="3">3 клипа</option>
-            <option value="5">5 клипов</option>
-            <option value="10">10 клипов</option>
-            <option value="20">20 клипов</option>
-          </select>
+          <div class="section">
+            <label for="clipCount">Количество клипов</label>
+            <select id="clipCount">
+              <option value="1">1 клип</option>
+              <option value="2">2 клипа</option>
+              <option value="3">3 клипа</option>
+              <option value="5" selected>5 клипов</option>
+              <option value="8">8 клипов</option>
+              <option value="10">10 клипов</option>
+              <option value="15">15 клипов</option>
+              <option value="20">20 клипов</option>
+            </select>
+            <p class="hint">
+              Выбери, сколько отдельных видеороликов создать.
+            </p>
+          </div>
 
-          <p>Длительность:</p>
-          <select id="duration">
-            <option value="10">10 секунд</option>
-            <option value="15">15 секунд</option>
-            <option value="30">30 секунд</option>
-            <option value="60">60 секунд</option>
-          </select>
+          <div class="section">
+            <label for="duration">Ориентировочная длительность клипа</label>
+            <select id="duration">
+              <option value="5">5 секунд</option>
+              <option value="10">10 секунд</option>
+              <option value="15" selected>15 секунд</option>
+              <option value="20">20 секунд</option>
+              <option value="30">30 секунд</option>
+              <option value="45">45 секунд</option>
+              <option value="60">60 секунд</option>
+            </select>
+            <p class="hint">
+              Фактическая длительность может немного отличаться
+              из-за алгоритма разнообразия.
+            </p>
+          </div>
 
-          <p>Соотношение сторон:</p>
-          <select id="ratio">
-            <option value="9:16">9:16 — вертикальное</option>
-            <option value="16:9">16:9 — горизонтальное</option>
-            <option value="1:1">1:1 — квадрат</option>
-          </select>
+          <div class="section">
+            <label for="ratio">Формат кадра</label>
+            <select id="ratio">
+              <option value="9:16">9:16 — вертикальный</option>
+              <option value="16:9">16:9 — горизонтальный</option>
+              <option value="1:1">1:1 — квадратный</option>
+            </select>
+            <p class="hint">
+              Выбор формата пока сохраняется в интерфейсе.
+              Реальное преобразование кадра подключим отдельно.
+            </p>
+          </div>
 
-          <button onclick="cutVideo()">Начать нарезку</button>
+          <button onclick="cutVideo()">
+            Начать нарезку
+          </button>
 
-          <p id="status">Выберите видео для обработки.</p>
+          <p id="status">
+            Выбери видео, количество клипов и длительность.
+          </p>
 
           <script>
+          let videoSelected = false;
+
           document.getElementById('video').onchange = function() {
-            if (this.files.length > 0) {
+            if (this.files && this.files.length > 0) {
+              videoSelected = true;
+
               document.getElementById('status').innerText =
-                'Видео выбрано. Можно начинать обработку.';
+                'Видео выбрано. Настрой параметры и нажми Начать нарезку.';
             }
           };
 
           function cutVideo() {
-            let seconds = parseInt(document.getElementById('duration').value);
-            let count = parseInt(document.getElementById('clipCount').value);
+
+            let seconds = parseInt(
+              document.getElementById('duration').value
+            );
+
+            let count = parseInt(
+              document.getElementById('clipCount').value
+            );
+
+            let ratio = document.getElementById('ratio').value;
+
+            if (!videoSelected) {
+              document.getElementById('status').innerText =
+                'Сначала выбери исходное видео.';
+              return;
+            }
 
             document.getElementById('status').innerText =
-              'Запущена обработка...';
+              'Запущена обработка. Создаётся ' +
+              count + ' клипов...';
 
-            AndroidClipper.trimVideo(seconds, count);
+            try {
+              AndroidClipper.trimVideo(seconds, count);
+            } catch (e) {
+              document.getElementById('status').innerText =
+                'Не удалось запустить обработку: ' + e.message;
+            }
           }
 
           window.onClipResult = function(message) {
             document.getElementById('status').innerText = message;
           };
           </script>
+
+          </div>
           </body>
           </html>
           EOF
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
