@@ -693,6 +693,9 @@ jobs:
           </script>
           </body>
           </html>
+               }
+          }
+          }
           EOF
 
 
