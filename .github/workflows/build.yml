@@ -17,7 +17,7 @@ jobs:
         run: |
           unzip -o ClipMasterAI-CloudBuild.zip
 
-      - name: Install updated MainActivity
+       - name: Install updated MainActivity
         run: |
           cat > ClipMasterAI-Android/app/src/main/java/com/clipmaster/ai/MainActivity.java <<'EOF'
           package com.clipmaster.ai;
@@ -633,9 +633,7 @@ jobs:
               }
           }
           EOF
-
-
-
+      
       
       - name: Install working video screen
         run: |
