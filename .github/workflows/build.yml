@@ -337,6 +337,7 @@ jobs:
           import java.io.OutputStream;
           import java.io.FileInputStream;
           import java.io.IOException;
+          import java.util.Random;
 
           public class VideoTrimmer {
 
@@ -370,35 +371,79 @@ jobs:
                       }
 
                       long durationMs = Long.parseLong(durationText);
-                      long clipMs = seconds * 1000L;
-
-                      File tempFolder = new File(
-                          context.getCacheDir(),
-                          "ClipMasterTemp"
-                      );
-
-                      if (!tempFolder.exists()) {
-                          tempFolder.mkdirs();
-                      }
-
                       int total = Math.max(1, Math.min(20, clipCount));
+                      long baseMs = seconds * 1000L;
 
-                      long actualClipMs = Math.min(
-                          clipMs,
-                          durationMs / total
-                      );
-
-                      if (actualClipMs <= 0) {
+                      if (durationMs < 1000) {
                           callback.onError("Видео слишком короткое.");
                           return;
                       }
 
-                      exportClip(
+                      Random random = new Random();
+
+                      long[] lengths = new long[total];
+                      long[] starts = new long[total];
+
+                      for (int i = 0; i < total; i++) {
+
+                          double variation =
+                              0.85 + random.nextDouble() * 0.30;
+
+                          long length = (long)(baseMs * variation);
+
+                          length = Math.max(1000, length);
+                          length = Math.min(length, durationMs);
+
+                          lengths[i] = length;
+                      }
+
+                      long maxStart = 0;
+
+                      for (int i = 0; i < total; i++) {
+                          maxStart = Math.max(
+                              maxStart,
+                              durationMs - lengths[i]
+                          );
+                      }
+
+                      for (int i = 0; i < total; i++) {
+
+                          long allowed = durationMs - lengths[i];
+
+                          if (total == 1 || allowed <= 0) {
+                              starts[i] = 0;
+                              continue;
+                          }
+
+                          double slot = (double)allowed / total;
+
+                          double center = slot * i;
+
+                          double jitter = (random.nextDouble() - 0.5)
+                              * slot * 0.70;
+
+                          long start = (long)(center + jitter);
+
+                          start = Math.max(0, Math.min(start, allowed));
+
+                          starts[i] = start;
+                      }
+
+                      File folder = new File(
+                          context.getCacheDir(),
+                          "ClipMasterTemp"
+                      );
+
+                      if (!folder.exists()) {
+                          folder.mkdirs();
+                      }
+
+                      exportNext(
                           context,
                           uri,
-                          tempFolder,
-                          actualClipMs,
-                          durationMs,
+                          folder,
+                          starts,
+                          lengths,
                           0,
                           total,
                           callback
@@ -409,31 +454,28 @@ jobs:
                   }
               }
 
-              private static void exportClip(
+              private static void exportNext(
                   Context context,
                   Uri uri,
                   File folder,
-                  long clipMs,
-                  long durationMs,
+                  long[] starts,
+                  long[] lengths,
                   int index,
                   int total,
                   Callback callback
               ) {
+
                   if (index >= total) {
                       callback.onSuccess(
-                          "Готово! Создано клипов: " + total
-                          + ". Они сохранены в Movies/Clip Master AI."
+                          "Готово! Создано " + total
+                          + " клипов с разнообразной длительностью."
+                          + " Сохранено в Movies/Clip Master AI."
                       );
                       return;
                   }
 
-                  long maxStart = Math.max(0, durationMs - clipMs);
-
-                  long startMs = total == 1
-                      ? 0
-                      : (maxStart * index) / (total - 1);
-
-                  long endMs = Math.min(startMs + clipMs, durationMs);
+                  long startMs = starts[index];
+                  long endMs = startMs + lengths[index];
 
                   File output = new File(
                       folder,
@@ -464,19 +506,22 @@ jobs:
                           ) {
                               try {
                                   saveToGallery(context, output);
-                                  exportClip(
+
+                                  exportNext(
                                       context,
                                       uri,
                                       folder,
-                                      clipMs,
-                                      durationMs,
+                                      starts,
+                                      lengths,
                                       index + 1,
                                       total,
                                       callback
                                   );
+
                               } catch (Exception e) {
                                   callback.onError(
-                                      "Ошибка сохранения: " + e.getMessage()
+                                      "Ошибка сохранения: "
+                                      + e.getMessage()
                                   );
                               }
                           }
@@ -507,28 +552,33 @@ jobs:
               ) throws IOException {
 
                   ContentValues values = new ContentValues();
+
                   values.put(
                       MediaStore.Video.Media.DISPLAY_NAME,
                       source.getName()
                   );
+
                   values.put(
                       MediaStore.Video.Media.MIME_TYPE,
                       "video/mp4"
                   );
 
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
                       values.put(
                           MediaStore.Video.Media.RELATIVE_PATH,
                           Environment.DIRECTORY_MOVIES
                           + "/Clip Master AI"
                       );
+
                       values.put(
                           MediaStore.Video.Media.IS_PENDING,
                           1
                       );
                   }
 
-                  Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                  Uri collection =
+                      MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
 
                   Uri videoUri = context.getContentResolver().insert(
                       collection,
@@ -542,13 +592,17 @@ jobs:
                   }
 
                   try (
-                      InputStream input = new FileInputStream(source);
-                      OutputStream output = context.getContentResolver()
-                          .openOutputStream(videoUri)
+                      InputStream input =
+                          new FileInputStream(source);
+
+                      OutputStream output =
+                          context.getContentResolver()
+                              .openOutputStream(videoUri)
                   ) {
+
                       if (output == null) {
                           throw new IOException(
-                              "Не удалось открыть файл для записи."
+                              "Не удалось открыть файл."
                           );
                       }
 
@@ -561,7 +615,9 @@ jobs:
                   }
 
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
                       ContentValues publish = new ContentValues();
+
                       publish.put(
                           MediaStore.Video.Media.IS_PENDING,
                           0
@@ -577,6 +633,7 @@ jobs:
               }
           }
           EOF
+,
 
 
 
